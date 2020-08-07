@@ -1,0 +1,157 @@
+#include <Servo.h>
+
+int motor1Input1 = 4;
+int motor1Input2 = 5;
+int motor2Input1 = 6;
+int motor2Input2 = 7;
+
+int reverseTime = 1000;
+int leftTime = 500;
+int rightTime = 500;
+
+int echoPin = 10;
+int trigPin = 11;
+int impactDistance = 5;
+
+int servoPin = 3;  
+int servoPos = 0;
+
+Servo myServo;
+
+void setup(){
+  Serial.begin(9600);
+  pinMode(motor1Input1, OUTPUT);
+  pinMode(motor1Input2, OUTPUT);
+  pinMode(motor2Input1, OUTPUT);
+  pinMode(motor2Input2, OUTPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(servoPin, OUTPUT);  
+  myServo.attach(servoPin);
+  myServo.write(90);  
+  Serial.begin(9600);
+}
+
+void loop(){
+
+  Serial.print("Object Distance is: ");
+  int cDistance = distanceSensor();
+  Serial.println(cDistance);
+  
+  if (cDistance<=impactDistance){
+    
+    digitalWrite(motor1Input1,LOW);
+    digitalWrite(motor1Input2,LOW);
+    digitalWrite(motor2Input1,LOW);
+    digitalWrite(motor2Input2,LOW);    
+    
+    reverse(reverseTime);
+    
+    int distance1 = servoLeft();
+    int distance2 = servoRight();
+  
+    if(distance1>distance2){
+      left(leftTime);
+    }
+    else{
+      right(rightTime);
+    }
+  
+  }
+  else{
+    forward();
+  }
+    
+}
+
+int distanceSensor(){
+  
+  digitalWrite(trigPin,LOW);
+  delayMicroseconds(2000);
+  digitalWrite(trigPin,HIGH);
+  delayMicroseconds(15);
+  digitalWrite(trigPin,LOW);
+  delayMicroseconds(10);
+  int pingTravelTime = pulseIn(echoPin,HIGH);
+  int pingTravelDistance=(pingTravelTime*350.)/(10000.);
+  int distanceToTarget=pingTravelDistance/2;
+  return distanceToTarget;    
+} 
+
+int servoLeft(){
+  
+  for(int pos=90; pos<167; pos++){  
+    myServo.write(pos);
+    delay(5);
+  }
+  delay(250);
+  int pingDistance1 = distanceSensor();
+  for(int pos=166; pos>=90; pos--){  
+    myServo.write(pos);
+    delay(5);
+  }
+  return pingDistance1;
+}
+
+int servoRight(){
+  
+  for(int pos=90; pos>=3; pos--){  
+    myServo.write(pos);
+    delay(5);
+  }
+  delay(250);
+  int pingDistance2 = distanceSensor();
+  for(int pos=3; pos<=90; pos++){  
+    myServo.write(pos);
+    delay(5);
+  }
+  return pingDistance2;
+}
+
+void forward(){
+  
+  digitalWrite(motor1Input1,HIGH);
+  digitalWrite(motor1Input2,LOW);
+  digitalWrite(motor2Input1,HIGH);
+  digitalWrite(motor2Input2,LOW);
+}
+
+void reverse(int time){
+  digitalWrite(motor1Input1,LOW);
+  digitalWrite(motor1Input2,HIGH);
+  digitalWrite(motor2Input1,LOW);
+  digitalWrite(motor2Input2,HIGH);
+  delay(time);
+  digitalWrite(motor1Input1,LOW);
+  digitalWrite(motor1Input2,LOW);
+  digitalWrite(motor2Input1,LOW);
+  digitalWrite(motor2Input2,LOW);
+  delay(500);
+
+}
+
+void right(int time){
+  digitalWrite(motor1Input1,LOW);
+  digitalWrite(motor1Input2,LOW);
+  digitalWrite(motor2Input1,HIGH);
+  digitalWrite(motor2Input2,LOW);
+  delay(time);
+  digitalWrite(motor1Input1,LOW);
+  digitalWrite(motor1Input2,LOW);
+  digitalWrite(motor2Input1,LOW);
+  digitalWrite(motor2Input2,LOW);
+  delay(500);
+}
+
+void left(int time){
+  digitalWrite(motor1Input1,HIGH);
+  digitalWrite(motor1Input2,LOW);
+  digitalWrite(motor2Input1,LOW);
+  digitalWrite(motor2Input2,LOW);
+  delay(time);
+  digitalWrite(motor1Input1,LOW);
+  digitalWrite(motor1Input2,LOW);
+  digitalWrite(motor2Input1,LOW);
+  digitalWrite(motor2Input2,LOW);
+  delay(500);
+}
